@@ -127,13 +127,26 @@ impl Kernel {
             println!("[CPU] Running: {}. PC: {}", task.id, task.program_counter);
 
            
-            let kernel_call = self.simulate_task_logic(task.id, task.program_counter);
-
-            if let Some(call) = kernel_call {
-                self.handle_kernel_call(call);
-            }
-
+            // Extract values before the borrow ends
+            let task_id = task.id;
+            let pc = task.program_counter;
+            
+        } // Mutable borrow ends here
+        
+        // Now we can call simulate_task_logic with an immutable borrow
+        let kernel_call = if self.running_task.is_some() {
+            let task_id = self.running_task.as_ref().unwrap().id;
+            let pc = self.running_task.as_ref().unwrap().program_counter;
+            self.simulate_task_logic(task_id, pc)
         } else {
+            None
+        };
+
+        if let Some(call) = kernel_call {
+            self.handle_kernel_call(call);
+        }
+
+        if self.running_task.is_none() {
            
             if self.ready_queue.is_empty() {
                 println!("[KERNEL] All tasks completed. Shutting down.");
