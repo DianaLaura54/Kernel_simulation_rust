@@ -87,6 +87,7 @@ impl Kernel {
    
     fn schedule(&mut self) {
         
+		//self.running_task.take() consumes the Option by "taking" the Some variant out, leaving None in place of the original Option.
         if let Some(mut current_task) = self.running_task.take() {
        
             if current_task.state == ProcessState::Running {
@@ -120,7 +121,7 @@ impl Kernel {
             self.schedule();
         }
 
-      
+      //you need ref mut—to create a mutable reference to the Process that's inside the Option.
         if let Some(ref mut task) = self.running_task {
       
             task.program_counter += 1;
@@ -198,6 +199,7 @@ impl Kernel {
                 }
             }
             KernelCall::Print(msg) => {
+				
                 if let Some(ref task) = self.running_task {
                     println!("[KERNEL/OUT] Task {} says: {}", task.id, msg);
                 }
